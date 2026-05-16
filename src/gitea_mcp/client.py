@@ -57,6 +57,10 @@ class GiteaClient:
         response = await self._client.post(self._api_path(path), json=json)
         return self._handle(response, method="POST", path=path)
 
+    async def put(self, path: str, json: Any | None = None) -> Any:
+        response = await self._client.put(self._api_path(path), json=json)
+        return self._handle(response, method="PUT", path=path)
+
     async def patch(self, path: str, json: Any | None = None) -> Any:
         response = await self._client.patch(self._api_path(path), json=json)
         return self._handle(response, method="PATCH", path=path)
