@@ -22,10 +22,11 @@ async def list_releases(
     pre-releases. Sort order is newest first.
     """
     client = get_client()
-    return await client.get(
+    releases: list[dict[str, Any]] = await client.get(
         f"/repos/{owner}/{repo}/releases",
         params={"page": page, "limit": limit},
     )
+    return releases
 
 
 @mcp.tool()
@@ -81,4 +82,7 @@ async def create_release(
     }
     if target_commitish is not None:
         payload["target_commitish"] = target_commitish
-    return await client.post(f"/repos/{owner}/{repo}/releases", json=payload)
+    release: dict[str, Any] = await client.post(
+        f"/repos/{owner}/{repo}/releases", json=payload
+    )
+    return release

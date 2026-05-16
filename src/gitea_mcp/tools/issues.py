@@ -9,7 +9,6 @@ from pydantic import Field
 from gitea_mcp.client import GiteaClient, GiteaError
 from gitea_mcp.server import get_client, mcp
 
-
 # ---- Internal helpers ------------------------------------------------------
 
 
@@ -91,7 +90,10 @@ async def create_issue(
         payload["milestone"] = milestone
     if labels:
         payload["labels"] = await _resolve_label_ids(client, owner, repo, labels)
-    return await client.post(f"/repos/{owner}/{repo}/issues", json=payload)
+    issue: dict[str, Any] = await client.post(
+        f"/repos/{owner}/{repo}/issues", json=payload
+    )
+    return issue
 
 
 @mcp.tool()
@@ -128,7 +130,10 @@ async def list_issues(
         params["labels"] = labels
     if assignee:
         params["assigned_by"] = assignee
-    return await client.get(f"/repos/{owner}/{repo}/issues", params=params)
+    issues: list[dict[str, Any]] = await client.get(
+        f"/repos/{owner}/{repo}/issues", params=params
+    )
+    return issues
 
 
 @mcp.tool()
@@ -144,7 +149,9 @@ async def get_issue(
     existing top-level ``comments`` integer field (comment count) is preserved.
     """
     client = get_client()
-    issue = await client.get(f"/repos/{owner}/{repo}/issues/{issue_number}")
+    issue: dict[str, Any] = await client.get(
+        f"/repos/{owner}/{repo}/issues/{issue_number}"
+    )
     issue["comments_list"] = await client.get(
         f"/repos/{owner}/{repo}/issues/{issue_number}/comments"
     )
@@ -196,6 +203,7 @@ async def update_issue(
         # We send null in that case, which Gitea also accepts and is unambiguous.
         payload["milestone"] = milestone if milestone > 0 else None
 
+    issue: dict[str, Any]
     if payload:
         issue = await client.patch(
             f"/repos/{owner}/{repo}/issues/{issue_number}", json=payload
@@ -224,7 +232,8 @@ async def add_comment(
 ) -> dict[str, Any]:
     """Add a comment to an existing issue. Returns the created Comment object."""
     client = get_client()
-    return await client.post(
+    comment: dict[str, Any] = await client.post(
         f"/repos/{owner}/{repo}/issues/{issue_number}/comments",
         json={"body": body},
     )
+    return comment
