@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 
 from fastmcp import FastMCP
 
@@ -55,10 +56,8 @@ def main() -> None:
         mcp.run()
     finally:
         # Best-effort cleanup. If the event loop is already closed, ignore.
-        try:
+        with contextlib.suppress(RuntimeError):
             asyncio.run(_client.close())
-        except RuntimeError:
-            pass
 
 
 if __name__ == "__main__":

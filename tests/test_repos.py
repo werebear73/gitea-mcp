@@ -8,7 +8,6 @@ from pytest_httpx import HTTPXMock
 from gitea_mcp.client import GiteaAPIError, GiteaClient
 from gitea_mcp.tools.repos import list_labels, list_milestones, list_repos
 
-
 # ---- list_repos ------------------------------------------------------------
 
 

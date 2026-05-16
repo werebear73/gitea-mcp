@@ -39,15 +39,19 @@ async def list_repos(
     client = get_client()
     params: dict[str, Any] = {"page": page, "limit": limit}
 
+    result: list[dict[str, Any]]
     if not owner:
-        return await client.get("/user/repos", params=params)
+        result = await client.get("/user/repos", params=params)
+        return result
 
     try:
-        return await client.get(f"/users/{owner}/repos", params=params)
+        result = await client.get(f"/users/{owner}/repos", params=params)
+        return result
     except GiteaAPIError as e:
         if e.status_code == 404:
             # Owner is likely an organization — fall back transparently.
-            return await client.get(f"/orgs/{owner}/repos", params=params)
+            result = await client.get(f"/orgs/{owner}/repos", params=params)
+            return result
         raise
 
 
@@ -65,10 +69,11 @@ async def list_labels(
     most tools accept label *names* and resolve to IDs internally.
     """
     client = get_client()
-    return await client.get(
+    labels: list[dict[str, Any]] = await client.get(
         f"/repos/{owner}/{repo}/labels",
         params={"page": page, "limit": limit},
     )
+    return labels
 
 
 @mcp.tool()
@@ -83,7 +88,8 @@ async def list_milestones(
 ) -> list[dict[str, Any]]:
     """List milestones in a repository, optionally filtered by state."""
     client = get_client()
-    return await client.get(
+    milestones: list[dict[str, Any]] = await client.get(
         f"/repos/{owner}/{repo}/milestones",
         params={"state": state, "page": page, "limit": limit},
     )
+    return milestones

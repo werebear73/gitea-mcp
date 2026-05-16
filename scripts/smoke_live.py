@@ -30,7 +30,7 @@ from __future__ import annotations
 import asyncio
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from gitea_mcp.client import GiteaAPIError, GiteaClient
 from gitea_mcp.config import Config
@@ -75,7 +75,7 @@ async def _run(owner: str, repo: str) -> int:
     )
     from gitea_mcp.tools.repos import list_labels, list_milestones, list_repos
 
-    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    timestamp = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
     title = f"gitea-mcp smoke test {timestamp}"
     target = f"{owner}/{repo}"
 
@@ -84,7 +84,10 @@ async def _run(owner: str, repo: str) -> int:
 
     try:
         # ---- Phase 1: repo metadata (read-only) ----
-        print(f"[Repo metadata 1/3] list_repos(owner={owner!r}) — target should appear ...", flush=True)
+        print(
+            f"[Repo metadata 1/3] list_repos(owner={owner!r}) — target should appear ...",
+            flush=True,
+        )
         repos = await list_repos(owner=owner, limit=50)
         repo_names = [r["name"] for r in repos]
         assert repo in repo_names, (
@@ -124,7 +127,11 @@ async def _run(owner: str, repo: str) -> int:
         )
         print(f"      OK — comment id {comment.get('id')}\n")
 
-        print(f"[Issue workflow 4/5] update_issue(#{issue_number}, state='closed', title=<+ ' (closed)'>) ...", flush=True)
+        print(
+            f"[Issue workflow 4/5] update_issue(#{issue_number}, state='closed', "
+            "title=<+ ' (closed)'>) ...",
+            flush=True,
+        )
         updated = await update_issue(
             owner=owner,
             repo=repo,
@@ -135,16 +142,25 @@ async def _run(owner: str, repo: str) -> int:
         assert updated["state"] == "closed", f"expected state=closed, got {updated['state']!r}"
         print(f"      OK — state={updated['state']!r}, title={updated['title']!r}\n")
 
-        print(f"[Issue workflow 5/5] get_issue(#{issue_number}) — should show 1 comment ...", flush=True)
+        print(
+            f"[Issue workflow 5/5] get_issue(#{issue_number}) — should show 1 comment ...",
+            flush=True,
+        )
         final = await get_issue(owner=owner, repo=repo, issue_number=issue_number)
         comments_count = len(final.get("comments_list", []))
         assert final["state"] == "closed", f"final state mismatch: {final['state']!r}"
         assert comments_count >= 1, f"expected >=1 comment, got {comments_count}"
-        print(f"      OK — state={final['state']!r}, comments_list has {comments_count} entry/entries\n")
+        print(
+            f"      OK — state={final['state']!r}, "
+            f"comments_list has {comments_count} entry/entries\n"
+        )
 
         print("=" * 60)
         print(f"  All 8 implemented tools passed against {target}.")
-        print(f"  (3 repo-metadata read-only; 5 issue-workflow — test issue closed: #{issue_number})")
+        print(
+            f"  (3 repo-metadata read-only; 5 issue-workflow — "
+            f"test issue closed: #{issue_number})"
+        )
         print("=" * 60)
         return 0
 

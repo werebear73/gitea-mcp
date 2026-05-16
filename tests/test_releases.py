@@ -10,7 +10,6 @@ from pytest_httpx import HTTPXMock
 from gitea_mcp.client import GiteaClient
 from gitea_mcp.tools.releases import create_release, list_releases
 
-
 # ---- list_releases ---------------------------------------------------------
 
 
