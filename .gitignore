@@ -158,6 +158,12 @@ ENV/
 env.bak/
 venv.bak/
 
+# setuptools_scm-generated version file (regenerated on every build;
+# committing it makes the tree appear "dirty" to scm at build time,
+# which bumps the version to the next patch with a .devN suffix —
+# this caused the v0.1.0 tag to publish to PyPI as 0.1.1.dev0).
+src/gitea_mcp/_version.py
+
 # Spyder project settings
 .spyderproject
 .spyproject

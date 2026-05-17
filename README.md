@@ -51,7 +51,15 @@ Add `write:repository` if you also want to create releases.
 
 ### 3. Configure your MCP client
 
-Add `gitea-mcp` to your MCP client configuration:
+**Claude Desktop (interactive):** run
+
+```bash
+gitea-mcp init
+```
+
+It prompts for the Gitea URL and Personal Access Token, verifies the connection, and writes (or merges into) the right `claude_desktop_config.json` for your OS. Restart Claude Desktop and you're done.
+
+**Any MCP client (manual):** add `gitea-mcp` to the client's MCP config:
 
 ```json
 {

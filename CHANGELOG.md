@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-17
+
+> Note on version numbering: The `v0.1.0` tag fired the release workflow and
+> published to PyPI as `0.1.1.dev0` rather than `0.1.0`, because
+> `src/gitea_mcp/_version.py` was committed to git — `setuptools_scm`
+> regenerates that file on every build and saw the regeneration as a "dirty"
+> working tree, which bumps the version to the next patch with a `.devN`
+> suffix. The file is now `.gitignore`d. The `0.1.1.dev0` release on PyPI
+> has been yanked. This `0.1.1` release is the real first published build.
+
 ### Fixed
 
 - **Empty tools list when launched via `python -m gitea_mcp.server`.** The
@@ -35,4 +45,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `README.md` with quick start, configuration, and tool reference.
 - `VERSIONING.md` documenting the semver / tag / release flow.
 - GitHub Actions workflows: CI (lint + type-check + tests on Python 3.11/3.12/3.13) and Release (publish to PyPI on `v*` tag push).
-- Unit test suite using `pytest-httpx` to mock the Gitea API. Issue tools have full coverage (12 tests); repo and release tools covered only by smoke tests pending Pass B-2/B-3.
+- Unit test suite using `pytest-httpx` to mock the Gitea API: full coverage for all 10 MVP tools plus the `init` subcommand and a subprocess-launch regression test guarding the dual-load fix. 49 tests total.
