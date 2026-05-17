@@ -12,7 +12,7 @@ import asyncio
 import contextlib
 import sys
 
-from gitea_mcp import _app
+from gitea_mcp import __version__, _app
 from gitea_mcp._app import mcp
 from gitea_mcp.client import GiteaClient
 from gitea_mcp.config import Config
@@ -26,22 +26,71 @@ from gitea_mcp.tools import issues, releases, repos  # noqa: E402, F401
 def main() -> None:
     """Console-script entry point.
 
-    With no arguments (the default Claude Desktop invocation): runs the MCP
-    server over stdio. With ``init`` as the first argument: hands off to
-    :func:`gitea_mcp.init.main` for the interactive setup flow.
+    Dispatches based on the first positional argument:
 
-    Server path:
-        1. Loads configuration from environment variables.
-        2. Initializes the singleton GiteaClient on the ``_app`` module.
-        3. Runs the MCP server over stdio (blocks until the client disconnects).
-        4. Closes the GiteaClient on shutdown.
+    * No arguments (the default Claude Desktop / Claude Code invocation):
+      runs the MCP server over stdio. This path is byte-identical to the
+      pre-v0.1.2 behavior and is guarded by ``tests/test_subprocess_launch``.
+    * ``--help`` / ``-h``: prints top-level help.
+    * ``--version`` / ``-V``: prints ``gitea-mcp <version>``.
+    * ``init``: hands off to :func:`gitea_mcp.init.main` for interactive setup.
+    * ``doctor``: hands off to :func:`gitea_mcp.doctor.main` for the preflight.
+    * Anything else: prints an unknown-subcommand error and exits 2.
+
+    Subcommand-level flag parsing (e.g. ``gitea-mcp init --help``) lives in
+    the subcommand modules' own argparse parsers; this dispatcher passes the
+    remaining argv through unchanged.
     """
-    if len(sys.argv) > 1 and sys.argv[1] == "init":
+    argv = sys.argv[1:]
+
+    if not argv:
+        _run_server()
+        return
+
+    first = argv[0]
+
+    if first in ("-h", "--help"):
+        _print_help()
+        return
+
+    if first in ("-V", "--version"):
+        print(f"gitea-mcp {__version__}")
+        return
+
+    if first == "init":
         from gitea_mcp.init import main as init_main
 
-        sys.exit(init_main(sys.argv[2:]))
+        sys.exit(init_main(argv[1:]))
 
-    _run_server()
+    if first == "doctor":
+        from gitea_mcp.doctor import main as doctor_main
+
+        sys.exit(doctor_main(argv[1:]))
+
+    print(f"Error: unknown subcommand '{first}'.", file=sys.stderr)
+    print("Run 'gitea-mcp --help' for usage.", file=sys.stderr)
+    sys.exit(2)
+
+
+def _print_help() -> None:
+    """Print the top-level help text."""
+    print(
+        "gitea-mcp — Model Context Protocol server for Gitea (and Forgejo, Codeberg)\n"
+        "\n"
+        "Usage:\n"
+        "  gitea-mcp                  Start the MCP server (stdio transport).\n"
+        "                             This is what Claude Desktop / Claude Code\n"
+        "                             invoke. Requires GITEA_URL and GITEA_TOKEN\n"
+        "                             environment variables.\n"
+        "  gitea-mcp init [opts]      Interactive setup: add gitea-mcp to\n"
+        "                             claude_desktop_config.json.\n"
+        "                             Run 'gitea-mcp init --help' for options.\n"
+        "  gitea-mcp doctor [opts]    Preflight check: verify GITEA_URL + token\n"
+        "                             and report status.\n"
+        "                             Run 'gitea-mcp doctor --help' for options.\n"
+        "  gitea-mcp --version, -V    Print version and exit.\n"
+        "  gitea-mcp --help, -h       This message.\n"
+    )
 
 
 def _run_server() -> None:

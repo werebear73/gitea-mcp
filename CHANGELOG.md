@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-17
+
+### Added
+
+- **`gitea-mcp doctor` subcommand:** preflight check that verifies `GITEA_URL` + Personal Access Token against the Gitea instance (via `GET /api/v1/user`) and then imports every tool module to confirm the MCP surface loads cleanly. Reuses the `check_connection()` helper introduced for `init`. Reads `GITEA_URL` / `GITEA_TOKEN` from environment by default; `--url` and `--token` flags override. Exits `0` on success, `1` on connection or load failure, `2` on missing configuration. Useful before wiring Claude Desktop at the server, or when an MCP client reports an empty tools list and you need to know whether the problem is the connection or the integration.
+- Top-level CLI now supports `--help` / `-h` (lists subcommands with a one-line description of each) and `--version` / `-V` (prints `gitea-mcp <version>`).
+
+### Fixed
+
+- **`gitea-mcp --help` previously started the server instead of printing help.** The v0.1.1 top-level dispatcher only intercepted `init` and let everything else (including `--help`) reach `_run_server()`. On a system with `GITEA_URL` + `GITEA_TOKEN` already in the environment the server would actually start; without them it crashed with a confusing "GITEA_URL is required" message instead of usage text. The new dispatcher in `server.py:main()` handles `--help` / `--version` / `init` / `doctor` explicitly, errors on unknown subcommands with exit `2`, and preserves the no-args behavior (Claude Desktop's launch invocation is byte-identical, and the `tests/test_subprocess_launch.py` regression test continues to pass).
+
 ## [0.1.1] - 2026-05-17
 
 > Note on version numbering: The `v0.1.0` tag fired the release workflow and

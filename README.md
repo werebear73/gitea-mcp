@@ -59,6 +59,14 @@ gitea-mcp init
 
 It prompts for the Gitea URL and Personal Access Token, verifies the connection, and writes (or merges into) the right `claude_desktop_config.json` for your OS. Restart Claude Desktop and you're done.
 
+To check that the server can reach your Gitea instance at any time:
+
+```bash
+gitea-mcp doctor
+```
+
+`doctor` reads `GITEA_URL` and `GITEA_TOKEN` from the environment, runs a `GET /api/v1/user`, and reports the authenticated username plus the state of the MCP tool surface. Exit `0` = ready; exit `1` = connection/load failure; exit `2` = missing config.
+
 **Any MCP client (manual):** add `gitea-mcp` to the client's MCP config:
 
 ```json
