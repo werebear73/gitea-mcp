@@ -7,8 +7,8 @@ from collections.abc import AsyncIterator
 import pytest
 import pytest_asyncio
 
+from gitea_mcp._app import mcp
 from gitea_mcp.client import GiteaClient
-from gitea_mcp.server import mcp
 
 
 @pytest_asyncio.fixture
@@ -35,13 +35,13 @@ def reset_server_client(monkeypatch: pytest.MonkeyPatch, request: pytest.Fixture
 
     Tests that need this should depend on the ``client`` fixture AND request
     this fixture explicitly; otherwise it's a no-op. To wire the singleton,
-    use ``monkeypatch.setattr('gitea_mcp.server._client', client)`` inside
+    use ``monkeypatch.setattr('gitea_mcp._app._client', client)`` inside
     the test, or use the ``patched_server_client`` fixture below.
     """
     # Reset module-level state between tests by clearing the singleton.
-    import gitea_mcp.server as server
+    import gitea_mcp._app as app
 
-    monkeypatch.setattr(server, "_client", None, raising=False)
+    monkeypatch.setattr(app, "_client", None, raising=False)
 
 
 @pytest_asyncio.fixture
@@ -49,9 +49,9 @@ async def patched_server_client(
     client: GiteaClient, monkeypatch: pytest.MonkeyPatch
 ) -> GiteaClient:
     """Bind the test GiteaClient as the singleton ``get_client()`` returns."""
-    import gitea_mcp.server as server
+    import gitea_mcp._app as app
 
-    monkeypatch.setattr(server, "_client", client, raising=False)
+    monkeypatch.setattr(app, "_client", client, raising=False)
     return client
 
 

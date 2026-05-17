@@ -61,9 +61,9 @@ async def _run(owner: str, repo: str) -> int:
         timeout=config.timeout,
     )
     # Bind so the tool functions' get_client() returns our client.
-    import gitea_mcp.server as server
+    import gitea_mcp._app as app
 
-    server._client = client
+    app._client = client
 
     # Import tools AFTER setting the singleton so any registration-time look-ups work.
     from gitea_mcp.tools.issues import (

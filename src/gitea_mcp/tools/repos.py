@@ -6,8 +6,8 @@ from typing import Annotated, Any
 
 from pydantic import Field
 
+from gitea_mcp._app import get_client, mcp
 from gitea_mcp.client import GiteaAPIError
-from gitea_mcp.server import get_client, mcp
 
 
 @mcp.tool()

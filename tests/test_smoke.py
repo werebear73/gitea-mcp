@@ -9,8 +9,8 @@ def test_package_imports() -> None:
     assert gitea_mcp.__version__ is not None
 
 
-def test_server_module_loads() -> None:
-    from gitea_mcp.server import mcp
+def test_app_module_loads() -> None:
+    from gitea_mcp._app import mcp
 
     assert mcp is not None
     # FastMCP exposes the server name; the gitea-mcp server identifies itself
