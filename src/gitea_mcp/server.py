@@ -74,6 +74,11 @@ def main() -> None:
 
         sys.exit(doctor_main(argv[1:]))
 
+    if first == "serve":
+        from gitea_mcp.serve import main as serve_main
+
+        sys.exit(serve_main(argv[1:]))
+
     print(f"Error: unknown subcommand '{first}'.", file=sys.stderr)
     print("Run 'gitea-mcp --help' for usage.", file=sys.stderr)
     sys.exit(2)
@@ -89,6 +94,10 @@ def _print_help() -> None:
         "                             This is what Claude Desktop / Claude Code\n"
         "                             invoke. Requires GITEA_URL and GITEA_TOKEN\n"
         "                             environment variables.\n"
+        "  gitea-mcp serve [opts]     Start the server with a chosen transport\n"
+        "                             (stdio or HTTP). Use --transport http for\n"
+        "                             self-hosting one instance for multiple clients.\n"
+        "                             Run 'gitea-mcp serve --help' for options.\n"
         "  gitea-mcp init [opts]      Interactive setup: add gitea-mcp to\n"
         "                             claude_desktop_config.json.\n"
         "                             Run 'gitea-mcp init --help' for options.\n"

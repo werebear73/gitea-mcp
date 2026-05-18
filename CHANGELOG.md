@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-18
+
+Adds streamable-HTTP transport so a single hosted gitea-mcp instance can serve multiple MCP clients over the network — the architectural foundation for upcoming Smithery URL publishing and any team / multi-machine setup. Backwards-compatible: the no-args invocation (`gitea-mcp`) still runs in stdio mode, so existing Claude Desktop / Cowork / Claude Code configs are unaffected.
+
+### Added
+
+- **`gitea-mcp serve` subcommand** — transport-selectable runner. Flags: `--transport stdio|http`, `--host`, `--port`, `--path`. Each flag also reads from an env var (`GITEA_MCP_TRANSPORT`, `GITEA_MCP_HOST`, `GITEA_MCP_PORT`, `GITEA_MCP_PATH`) so containerized deployments can configure entirely through environment without command-line arguments. Defaults: stdio transport / `127.0.0.1` / port `8000` / `/mcp` path.
+- **`src/gitea_mcp/serve.py`** — new module containing the serve flow and argparse parser. Dispatches to `FastMCP.run(transport=...)` with the right kwargs (FastMCP 2.x's HTTP transport is streamable-HTTP under the hood; the CLI exposes the simpler `http` alias).
+- 6 new unit tests in `tests/test_serve.py` covering default transport, explicit stdio, HTTP with explicit host/port/path, HTTP using defaults, env-var defaults applying when flags are absent, and flags overriding env vars.
+- 1 new dispatcher test in `tests/test_cli_dispatcher.py` (`gitea-mcp serve --foo bar` dispatches to `serve.main` with the remainder argv).
+- Top-level `--help` text updated to mention the new `serve` subcommand alongside `init` and `doctor`.
+
+### Changed
+
+- `src/gitea_mcp/server.py` top-level dispatcher adds a `serve` branch alongside the existing `init` and `doctor` branches. The no-args path (Claude Desktop's invocation) is byte-identical, so `tests/test_subprocess_launch.py` continues to pass unchanged.
+
+### Notes on auth model
+
+This release ships **single-user HTTP transport.** The server reads `GITEA_TOKEN` from its own environment exactly as the stdio mode does, and any client that reaches the URL acts as that one user against Gitea. This is appropriate for self-hosted personal use behind your own access controls (firewall, reverse-proxy auth, VPN, Tailscale, etc.). **Multi-tenant bring-your-own-token** — where each MCP client supplies its own Gitea credentials per request — is a real auth-integration project (probably involving the MCP OAuth flow and a per-request `GiteaClient`) and is deliberately deferred to a future release.
+
 ## [0.4.1] - 2026-05-18
 
 Patch bump rather than minor: the two new tools are server-meta (runtime self-identification), not domain-resource expansion. They don't change any existing tool's contract.
