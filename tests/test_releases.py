@@ -25,7 +25,7 @@ async def test_list_releases_defaults(
             {"id": 2, "tag_name": "v0.9.0", "draft": False, "prerelease": False},
         ],
     )
-    result = await list_releases(owner="acme", repo="widget")
+    result = await list_releases.fn(owner="acme", repo="widget")
     assert [r["tag_name"] for r in result] == ["v1.0.0", "v0.9.0"]
 
 
@@ -38,7 +38,7 @@ async def test_list_releases_pagination_params(
         url="https://gitea.example.com/api/v1/repos/acme/widget/releases?page=2&limit=10",
         json=[],
     )
-    await list_releases(owner="acme", repo="widget", page=2, limit=10)
+    await list_releases.fn(owner="acme", repo="widget", page=2, limit=10)
 
 
 # ---- create_release --------------------------------------------------------
@@ -60,7 +60,7 @@ async def test_create_release_minimal(
         url="https://gitea.example.com/api/v1/repos/acme/widget/releases",
         json=expected,
     )
-    result = await create_release(
+    result = await create_release.fn(
         owner="acme", repo="widget", tag_name="v1.0.0", name="First Stable"
     )
     assert result == expected
@@ -86,7 +86,7 @@ async def test_create_release_all_params(
         url="https://gitea.example.com/api/v1/repos/acme/widget/releases",
         json={"id": 99, "tag_name": "v2.0.0-rc.1"},
     )
-    await create_release(
+    await create_release.fn(
         owner="acme",
         repo="widget",
         tag_name="v2.0.0-rc.1",
@@ -118,7 +118,7 @@ async def test_create_release_as_draft(
         url="https://gitea.example.com/api/v1/repos/acme/widget/releases",
         json={"id": 100, "tag_name": "v1.0.0", "draft": True},
     )
-    await create_release(
+    await create_release.fn(
         owner="acme",
         repo="widget",
         tag_name="v1.0.0",

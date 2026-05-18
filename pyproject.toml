@@ -26,7 +26,12 @@ classifiers = [
     "Topic :: Software Development :: Version Control :: Git",
 ]
 dependencies = [
-    "fastmcp>=2.0.0",
+    # Pinned <3.0: FastMCP 3.x changed stdin/EOF handling such that messages
+    # queued behind `notifications/initialized` (e.g. an immediately-following
+    # `tools/list`) can be dropped when the client closes stdin, breaking the
+    # subprocess regression test that guards the dual-load fix. Migration to
+    # FastMCP 3.x is a separate v0.3.0 task.
+    "fastmcp>=2.0,<3.0",
     "httpx>=0.27.0",
     "pydantic>=2.0.0",
 ]
@@ -66,6 +71,15 @@ target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+# Explicit first-party declaration so ruff's isort rule (I001) produces the
+# same import grouping regardless of ruff version. Older ruff (e.g. v0.5)
+# defaulted to grouping local `gitea_mcp` with third-party; newer ruff
+# (v0.15+) defaults to treating it as first-party with its own group.
+# Declaring this here eliminates the divergence and locks in the
+# third-party / first-party split with a blank line between.
+known-first-party = ["gitea_mcp"]
 
 [tool.mypy]
 python_version = "3.11"

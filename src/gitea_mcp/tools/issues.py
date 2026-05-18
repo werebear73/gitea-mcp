@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from gitea_mcp._app import get_client, mcp
@@ -60,13 +59,7 @@ async def _resolve_label_ids(
 # ---- Tools -----------------------------------------------------------------
 
 
-@mcp.tool(
-    annotations=ToolAnnotations(
-        readOnlyHint=False,
-        destructiveHint=False,
-        openWorldHint=True,
-    )
-)
+@mcp.tool()
 async def create_issue(
     owner: Annotated[str, Field(description="Repository owner (user or organization name)")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -100,9 +93,7 @@ async def create_issue(
     return await client.post_json(f"/repos/{owner}/{repo}/issues", json=payload)
 
 
-@mcp.tool(
-    annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True)
-)
+@mcp.tool()
 async def list_issues(
     owner: Annotated[str, Field(description="Repository owner (user or organization name)")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -139,9 +130,7 @@ async def list_issues(
     return await client.get_list(f"/repos/{owner}/{repo}/issues", params=params)
 
 
-@mcp.tool(
-    annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True)
-)
+@mcp.tool()
 async def get_issue(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -161,17 +150,7 @@ async def get_issue(
     return issue
 
 
-@mcp.tool(
-    annotations=ToolAnnotations(
-        readOnlyHint=False,
-        # Can close the issue and clear labels — both reversible but
-        # user-visible side effects, so clients should gate on confirmation
-        # rather than auto-approve.
-        destructiveHint=True,
-        idempotentHint=True,
-        openWorldHint=True,
-    )
-)
+@mcp.tool()
 async def update_issue(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -235,13 +214,7 @@ async def update_issue(
     return issue
 
 
-@mcp.tool(
-    annotations=ToolAnnotations(
-        readOnlyHint=False,
-        destructiveHint=False,
-        openWorldHint=True,
-    )
-)
+@mcp.tool()
 async def add_comment(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],

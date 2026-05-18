@@ -4,16 +4,13 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from gitea_mcp._app import get_client, mcp
 from gitea_mcp.client import GiteaAPIError
 
-_READ_ONLY = ToolAnnotations(readOnlyHint=True, openWorldHint=True)
 
-
-@mcp.tool(annotations=_READ_ONLY)
+@mcp.tool()
 async def list_repos(
     owner: Annotated[
         str | None,
@@ -54,7 +51,7 @@ async def list_repos(
         raise
 
 
-@mcp.tool(annotations=_READ_ONLY)
+@mcp.tool()
 async def list_labels(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -73,7 +70,7 @@ async def list_labels(
     )
 
 
-@mcp.tool(annotations=_READ_ONLY)
+@mcp.tool()
 async def list_milestones(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],

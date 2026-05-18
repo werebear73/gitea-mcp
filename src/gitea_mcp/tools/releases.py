@@ -4,15 +4,12 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
-from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from gitea_mcp._app import get_client, mcp
 
 
-@mcp.tool(
-    annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True)
-)
+@mcp.tool()
 async def list_releases(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -30,17 +27,7 @@ async def list_releases(
     )
 
 
-@mcp.tool(
-    annotations=ToolAnnotations(
-        readOnlyHint=False,
-        # Creates a release AND (per docstring warning) creates the underlying
-        # git tag if it doesn't exist. That tag-creation side effect is what
-        # makes this not idempotent (re-running with same tag_name errors).
-        destructiveHint=False,
-        idempotentHint=False,
-        openWorldHint=True,
-    )
-)
+@mcp.tool()
 async def create_release(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
