@@ -35,12 +35,16 @@ from typing import IO, Any
 EXPECTED_TOOLS = sorted(
     [
         "add_comment",
+        "add_comment_on_pr",
         "create_issue",
         "create_release",
         "get_issue",
+        "get_pull_request",
+        "list_branches",
         "list_issues",
         "list_labels",
         "list_milestones",
+        "list_pull_requests",
         "list_releases",
         "list_repos",
         "update_issue",

@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-18
+
+First tool-surface expansion since the v0.1.x MVP. Adds branch listing and pull-request read/comment tools so future projects have first-class access to Gitea's PR workflow, not just issues.
+
+### Added
+
+- **`list_branches(owner, repo)`** — list branches in a repository, including commit info and protection status. Useful for inspecting available targets before opening a PR or cutting a release.
+- **`list_pull_requests(owner, repo, state="open", sort=None)`** — list PRs in a repository with state filtering (`open` / `closed` / `all`) and optional sort order (`oldest` / `newest` / `leastupdate` / `mostupdate` / etc.).
+- **`get_pull_request(owner, repo, pull_number)`** — get a single PR by number. Mirrors `get_issue`'s shape: returns the full Gitea PullRequest object with an additional `comments_list` field containing the issue-style comment thread. Inline review comments (diff-line) are deliberately out of scope.
+- **`get_pull_request` head/base info preserved.** The returned object includes `head.ref` / `head.sha` / `base.ref` / `base.sha` / `mergeable` so the LLM can reason about the PR's branch topology and merge state.
+- **`add_comment_on_pr(owner, repo, pull_number, body)`** — add a conversation comment to a pull request. Posts to `/repos/{owner}/{repo}/issues/{pull_number}/comments` (the same endpoint Gitea uses for issue comments — PRs and issues share comment infrastructure in Gitea). Read tools get `readOnlyHint=True`; the comment tool gets `openWorldHint=True` and `destructiveHint=False`.
+- New module `src/gitea_mcp/tools/pulls.py` grouping all 4 tools, registered via `gitea_mcp.server` alongside the existing `issues`, `repos`, and `releases` modules.
+- `tests/test_pulls.py` with 7 unit tests covering all 4 tools (defaults, state filter, sort param, comments_list inclusion, comment endpoint targeting).
+- `tests/test_subprocess_launch.py`'s `EXPECTED_TOOLS` updated to 14 (was 10) so the dual-load regression test asserts the new tools are registered.
+
 ## [0.2.2] - 2026-05-18
 
 Closes out the two items deferred from v0.2.1.
