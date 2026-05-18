@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
+from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from gitea_mcp._app import get_client, mcp
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True)
+)
 async def list_releases(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -21,15 +24,23 @@ async def list_releases(
     Returns the standard Gitea Release object array, including drafts and
     pre-releases. Sort order is newest first.
     """
-    client = get_client()
-    releases: list[dict[str, Any]] = await client.get(
+    return await get_client().get_list(
         f"/repos/{owner}/{repo}/releases",
         params={"page": page, "limit": limit},
     )
-    return releases
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        # Creates a release AND (per docstring warning) creates the underlying
+        # git tag if it doesn't exist. That tag-creation side effect is what
+        # makes this not idempotent (re-running with same tag_name errors).
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    )
+)
 async def create_release(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -72,7 +83,6 @@ async def create_release(
        branch). Creating a draft does NOT skip tag creation — both drafts and
        published releases will leave a tag in the repo.
     """
-    client = get_client()
     payload: dict[str, Any] = {
         "tag_name": tag_name,
         "name": name,
@@ -82,7 +92,6 @@ async def create_release(
     }
     if target_commitish is not None:
         payload["target_commitish"] = target_commitish
-    release: dict[str, Any] = await client.post(
+    return await get_client().post_json(
         f"/repos/{owner}/{repo}/releases", json=payload
     )
-    return release

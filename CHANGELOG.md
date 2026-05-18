@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-17
+
+Hardening release. No new tools or user-facing CLI surface; this is foundational work that the next round of tool additions (Phase 2 PR reads, Phase 3 file ops) will build on. The minor-version bump reflects the change to the `GiteaClient` public surface — new typed verb methods are added, and the constructor accepts two new optional parameters. Existing callers using the untyped verbs continue to work unchanged.
+
+### Added
+
+- **Typed verb methods on `GiteaClient`:** `get_json`, `get_list`, `post_json`, `patch_json`, `put_json`, `put_list`. Each wraps the corresponding untyped verb and asserts the response shape, raising `GiteaError` on mismatch. Lets tool implementations return their result directly without the typed-intermediate variable pattern that PR #4 had to apply to every tool to satisfy strict mypy. The 10 existing tools have been migrated to use the typed wrappers; the untyped `get` / `post` / etc. remain for cases that don't care about the shape.
+- **Retry-with-backoff in `GiteaClient`:** transient failures on idempotent methods (`GET`, `PUT`, `DELETE`) now retry automatically. Retries on `502` / `503` / `504` responses and on `httpx.ConnectError` / `ReadTimeout` / `WriteTimeout`. `429 Too Many Requests` is retried for **any** method, honoring the `Retry-After` header if present. `POST` and `PATCH` are deliberately **not** retried on 5xx or network errors (could create duplicate issues, comments, or releases). Exponential backoff with jitter, capped at 4 seconds. Configurable via `GITEA_MAX_RETRIES` (default `3`; set to `0` to disable) and `GITEA_RETRY_BASE_DELAY` (default `0.5`).
+- **MCP tool annotations on all 10 tools.** Read tools (`list_issues`, `get_issue`, `list_repos`, `list_labels`, `list_milestones`, `list_releases`) have `readOnlyHint=True` so MCP clients can auto-approve them. Write tools (`create_issue`, `add_comment`, `create_release`) have `readOnlyHint=False` with `destructiveHint=False`. `update_issue` has `destructiveHint=True` because closing an issue and clearing labels are reversible-but-user-visible side effects worth gating on confirmation. All tools have `openWorldHint=True` (they hit a remote Gitea instance).
+- **Two-stage pre-commit hook config** (`.pre-commit-config.yaml`): `ruff` + `mypy` on the `commit` stage (fast — keeps the commit loop snappy); `pytest` + `python -m build && twine check dist/*` on the `pre-push` stage (catches the build-time `setuptools_scm` surprises that bit `v0.1.0`'s accidental `.dev0` publish). New dev dependencies: `pre-commit`, `build`, `twine`. README's Development section documents the install steps.
+- Two new env vars on `Config`: `GITEA_MAX_RETRIES` and `GITEA_RETRY_BASE_DELAY` (see Retry above).
+
+### Changed
+
+- `GiteaClient.__init__` accepts two new optional keyword arguments: `max_retries` (default `3`) and `retry_base_delay` (default `0.5`). Existing callers are unaffected — both have defaults that match the previous behavior of "no retries, no backoff" plus the new retry policy.
+- All 10 tool implementations now use the typed verb wrappers (`get_json`, `get_list`, `post_json`, `patch_json`, `put_list`) instead of the typed-intermediate-variable pattern. Behaviorally identical from the MCP client's perspective.
+
 ## [0.1.2] - 2026-05-17
 
 ### Added

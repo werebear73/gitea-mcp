@@ -67,13 +67,14 @@ gitea-mcp doctor
 
 `doctor` reads `GITEA_URL` and `GITEA_TOKEN` from the environment, runs a `GET /api/v1/user`, and reports the authenticated username plus the state of the MCP tool surface. Exit `0` = ready; exit `1` = connection/load failure; exit `2` = missing config.
 
-**Any MCP client (manual):** add `gitea-mcp` to the client's MCP config:
+**Any MCP client (manual):** add `gitea-mcp` to the client's MCP config. The recommended form uses `uvx` so the client launches the latest published wheel in an isolated env without needing `gitea-mcp` on its own PATH (this is what `gitea-mcp init` writes):
 
 ```json
 {
   "mcpServers": {
     "gitea": {
-      "command": "gitea-mcp",
+      "command": "uvx",
+      "args": ["gitea-mcp"],
       "env": {
         "GITEA_URL": "https://your-gitea-instance.example.com",
         "GITEA_TOKEN": "your-personal-access-token"
@@ -82,6 +83,8 @@ gitea-mcp doctor
   }
 }
 ```
+
+If you'd rather use a globally pip-installed `gitea-mcp` binary, drop `args` and set `command` to `"gitea-mcp"` directly — works as long as the binary is on the MCP client's PATH at launch time.
 
 See [`mcp.json`](mcp.json) for a complete example. The same shape works for Claude Desktop, VS Code, Cowork, Claude Code, and any other MCP-compatible client.
 
@@ -94,6 +97,8 @@ Configuration is read from environment variables.
 | `GITEA_URL` | Yes | — | Base URL of your Gitea instance (e.g., `https://gitea.example.com`) |
 | `GITEA_TOKEN` | Yes | — | Personal Access Token from your Gitea user settings |
 | `GITEA_TIMEOUT` | No | `30` | HTTP request timeout in seconds |
+| `GITEA_MAX_RETRIES` | No | `3` | Max retries for transient failures on idempotent methods (`GET`/`PUT`/`DELETE`). Set to `0` to disable retries. `POST` and `PATCH` are never auto-retried — they could create duplicate issues, comments, or releases. `429 Too Many Requests` is retried for **any** method, honoring `Retry-After` when present. |
+| `GITEA_RETRY_BASE_DELAY` | No | `0.5` | Base delay (seconds) for exponential backoff between retries. Effective delay grows as `base * 2^attempt` with jitter, capped at 4 seconds. |
 
 ## Compatibility
 
@@ -109,8 +114,12 @@ Configuration is read from environment variables.
 git clone https://github.com/werebear73/gitea-mcp.git
 cd gitea-mcp
 pip install -e ".[dev]"
+pre-commit install                       # commit-stage hooks (ruff + mypy)
+pre-commit install --hook-type pre-push  # push-stage hooks (pytest + build check)
 pytest
 ```
+
+The two-stage pre-commit policy keeps the commit loop snappy (lint + type only) while making `git push` block on the slow stuff that's actually caught CI/release bugs in the past — the full test suite and `python -m build && twine check dist/*`, which surfaces `setuptools_scm` version surprises before they reach a tag push.
 
 ## Versioning
 

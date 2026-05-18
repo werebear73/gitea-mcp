@@ -99,6 +99,8 @@ def _run_server() -> None:
         base_url=config.base_url,
         token=config.token,
         timeout=config.timeout,
+        max_retries=config.max_retries,
+        retry_base_delay=config.retry_base_delay,
     )
     _app._client = client
     try:

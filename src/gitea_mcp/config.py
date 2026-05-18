@@ -16,6 +16,8 @@ class Config:
     base_url: str
     token: str
     timeout: float = 30.0
+    max_retries: int = 3
+    retry_base_delay: float = 0.5
 
     @classmethod
     def from_env(cls) -> Config:
@@ -27,6 +29,10 @@ class Config:
 
         Optional:
             GITEA_TIMEOUT: HTTP request timeout in seconds (default: 30)
+            GITEA_MAX_RETRIES: Max retries for transient failures on idempotent
+                methods (GET/PUT/DELETE). Default 3. Set to 0 to disable retries.
+            GITEA_RETRY_BASE_DELAY: Base delay (seconds) for exponential backoff
+                between retries. Default 0.5. Effective delay is capped at 4s.
 
         Raises:
             RuntimeError: if required variables are missing.
@@ -46,9 +52,13 @@ class Config:
             )
 
         timeout = float(os.environ.get("GITEA_TIMEOUT", "30"))
+        max_retries = int(os.environ.get("GITEA_MAX_RETRIES", "3"))
+        retry_base_delay = float(os.environ.get("GITEA_RETRY_BASE_DELAY", "0.5"))
 
         return cls(
             base_url=base_url.rstrip("/"),
             token=token,
             timeout=timeout,
+            max_retries=max_retries,
+            retry_base_delay=retry_base_delay,
         )

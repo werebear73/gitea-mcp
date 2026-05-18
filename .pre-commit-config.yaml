@@ -1,0 +1,59 @@
+# Two-stage hook policy:
+#   pre-commit stage : ruff + mypy   (fast — keeps the commit loop snappy)
+#   pre-push stage   : pytest + python -m build + twine check   (catches the
+#                      CI-only failure modes that bit us in v0.1.0's
+#                      accidental .dev0 publish)
+#
+# Install once per clone:
+#   pip install pre-commit
+#   pre-commit install                       # commit-stage hooks
+#   pre-commit install --hook-type pre-push  # push-stage hooks
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.0
+    hooks:
+      # Do NOT add `args: [check]` here. The ruff-pre-commit hook's entry is
+      # already `ruff check`, so `args: [check]` would expand to
+      # `ruff check check <files>` and ruff would try to lint a file named
+      # "check" (E902: file not found). The bare hook id does the right thing.
+      - id: ruff
+        stages: [pre-commit]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        args: [src]
+        additional_dependencies:
+          - fastmcp>=2.0.0
+          - httpx>=0.27.0
+          - pydantic>=2.0.0
+        stages: [pre-commit]
+        pass_filenames: false
+
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: pytest
+        language: system
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
+
+      # Note: language: python (not system + bash) so pre-commit provisions a
+      # venv with `build` and `twine` available without depending on the
+      # user's shell PATH. On Windows, `language: system` + `bash -c` failed
+      # because pre-commit's bash subprocess didn't see the active venv's
+      # `python`, even when the user was running from the activated venv.
+      - id: build-and-check
+        name: python -m build && twine check dist/*
+        entry: python scripts/check_build.py
+        language: python
+        stages: [pre-push]
+        pass_filenames: false
+        always_run: true
+        additional_dependencies:
+          - build>=1.0
+          - twine>=5.0

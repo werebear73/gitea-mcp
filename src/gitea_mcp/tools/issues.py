@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, Any
 
+from mcp.types import ToolAnnotations
 from pydantic import Field
 
 from gitea_mcp._app import get_client, mcp
@@ -19,7 +20,7 @@ async def _list_all_labels(
     all_labels: list[dict[str, Any]] = []
     page = 1
     while True:
-        batch = await client.get(
+        batch = await client.get_list(
             f"/repos/{owner}/{repo}/labels",
             params={"page": page, "limit": 50},
         )
@@ -59,7 +60,13 @@ async def _resolve_label_ids(
 # ---- Tools -----------------------------------------------------------------
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        openWorldHint=True,
+    )
+)
 async def create_issue(
     owner: Annotated[str, Field(description="Repository owner (user or organization name)")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -90,13 +97,12 @@ async def create_issue(
         payload["milestone"] = milestone
     if labels:
         payload["labels"] = await _resolve_label_ids(client, owner, repo, labels)
-    issue: dict[str, Any] = await client.post(
-        f"/repos/{owner}/{repo}/issues", json=payload
-    )
-    return issue
+    return await client.post_json(f"/repos/{owner}/{repo}/issues", json=payload)
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True)
+)
 async def list_issues(
     owner: Annotated[str, Field(description="Repository owner (user or organization name)")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -130,13 +136,12 @@ async def list_issues(
         params["labels"] = labels
     if assignee:
         params["assigned_by"] = assignee
-    issues: list[dict[str, Any]] = await client.get(
-        f"/repos/{owner}/{repo}/issues", params=params
-    )
-    return issues
+    return await client.get_list(f"/repos/{owner}/{repo}/issues", params=params)
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(readOnlyHint=True, openWorldHint=True)
+)
 async def get_issue(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -149,16 +154,24 @@ async def get_issue(
     existing top-level ``comments`` integer field (comment count) is preserved.
     """
     client = get_client()
-    issue: dict[str, Any] = await client.get(
-        f"/repos/{owner}/{repo}/issues/{issue_number}"
-    )
-    issue["comments_list"] = await client.get(
+    issue = await client.get_json(f"/repos/{owner}/{repo}/issues/{issue_number}")
+    issue["comments_list"] = await client.get_list(
         f"/repos/{owner}/{repo}/issues/{issue_number}/comments"
     )
     return issue
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        # Can close the issue and clear labels — both reversible but
+        # user-visible side effects, so clients should gate on confirmation
+        # rather than auto-approve.
+        destructiveHint=True,
+        idempotentHint=True,
+        openWorldHint=True,
+    )
+)
 async def update_issue(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -203,19 +216,18 @@ async def update_issue(
         # We send null in that case, which Gitea also accepts and is unambiguous.
         payload["milestone"] = milestone if milestone > 0 else None
 
-    issue: dict[str, Any]
     if payload:
-        issue = await client.patch(
+        issue = await client.patch_json(
             f"/repos/{owner}/{repo}/issues/{issue_number}", json=payload
         )
     else:
         # No PATCH-level changes — fetch the current issue so the caller still
         # gets the up-to-date object after the labels update below.
-        issue = await client.get(f"/repos/{owner}/{repo}/issues/{issue_number}")
+        issue = await client.get_json(f"/repos/{owner}/{repo}/issues/{issue_number}")
 
     if labels is not None:
         label_ids = await _resolve_label_ids(client, owner, repo, labels)
-        issue["labels"] = await client.put(
+        issue["labels"] = await client.put_list(
             f"/repos/{owner}/{repo}/issues/{issue_number}/labels",
             json={"labels": label_ids},
         )
@@ -223,7 +235,13 @@ async def update_issue(
     return issue
 
 
-@mcp.tool()
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        openWorldHint=True,
+    )
+)
 async def add_comment(
     owner: Annotated[str, Field(description="Repository owner")],
     repo: Annotated[str, Field(description="Repository name")],
@@ -231,9 +249,7 @@ async def add_comment(
     body: Annotated[str, Field(description="Comment body (Markdown)")],
 ) -> dict[str, Any]:
     """Add a comment to an existing issue. Returns the created Comment object."""
-    client = get_client()
-    comment: dict[str, Any] = await client.post(
+    return await get_client().post_json(
         f"/repos/{owner}/{repo}/issues/{issue_number}/comments",
         json={"body": body},
     )
-    return comment

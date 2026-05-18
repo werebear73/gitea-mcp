@@ -1,7 +1,8 @@
 {
   "mcpServers": {
     "gitea": {
-      "command": "gitea-mcp",
+      "command": "uvx",
+      "args": ["gitea-mcp"],
       "env": {
         "GITEA_URL": "https://your-gitea-instance.example.com",
         "GITEA_TOKEN": "your-personal-access-token"
