@@ -96,6 +96,15 @@ class GiteaClient:
         """Close the underlying HTTP client. Safe to call multiple times."""
         await self._client.aclose()
 
+    @property
+    def base_url(self) -> str:
+        """The Gitea instance base URL this client is configured against.
+
+        Read-only — set at construction time. Useful for tools that report
+        server identity (e.g. ``get_server_info``).
+        """
+        return self._base_url
+
     # ---- Untyped verbs (return Any) ----------------------------------------
 
     async def get(

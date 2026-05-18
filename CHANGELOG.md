@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-05-18
+
+Patch bump rather than minor: the two new tools are server-meta (runtime self-identification), not domain-resource expansion. They don't change any existing tool's contract.
+
+### Added
+
+- **`get_server_version` MCP tool** — returns `{"gitea_mcp_version": "<version>"}`. No network call; cheap. Tagged `readOnlyHint=True` and `openWorldHint=False` (it doesn't touch Gitea or any external system).
+- **`get_server_info` MCP tool** — returns a dict with `gitea_mcp_version`, `gitea_url`, `gitea_user` (the login of the authenticated PAT), and `gitea_version` (the Gitea instance version via `GET /api/v1/version`, falling back to `None` if unavailable on older Gitea or when the PAT lacks scope). Useful for runtime introspection when (a) an MCP client has multiple gitea-mcp servers configured and needs to tell them apart, (b) a behavior diverges from documented contract and the LLM wants to verify what version it's talking to, and (c) future client UIs want to nudge upgrades. Tagged `readOnlyHint=True` + `openWorldHint=True`.
+- New module `src/gitea_mcp/tools/server_info.py` registered alongside the other tool modules.
+- `tests/test_server_info.py` with 4 unit tests (happy path with both endpoints; `/version` 404 → graceful `None` fallback; `/user` 401 → propagates; sync `get_server_version` returns the package version).
+- New `GiteaClient.base_url` read-only property — avoids poking the private `_base_url` attribute from `get_server_info`.
+- `tests/test_subprocess_launch.py`'s `EXPECTED_TOOLS` bumped to 20 (was 18).
+
 ## [0.4.0] - 2026-05-18
 
 Phase 3 — file operations and PR creation. This is the surface that lets the LLM actually *change code* via gitea-mcp instead of just reading and discussing it. Tool surface 14 → 18.

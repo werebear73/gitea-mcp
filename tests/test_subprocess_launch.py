@@ -43,6 +43,8 @@ EXPECTED_TOOLS = sorted(
         "create_release",
         "get_issue",
         "get_pull_request",
+        "get_server_info",
+        "get_server_version",
         "list_branches",
         "list_issues",
         "list_labels",

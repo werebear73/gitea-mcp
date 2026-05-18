@@ -20,7 +20,14 @@ from gitea_mcp.config import Config
 # Import tool modules so their @mcp.tool() registrations execute on module
 # load. Ordering doesn't matter; each module registers against the shared
 # ``mcp`` instance in ``_app``.
-from gitea_mcp.tools import files, issues, pulls, releases, repos  # noqa: E402, F401
+from gitea_mcp.tools import (  # noqa: E402, F401
+    files,
+    issues,
+    pulls,
+    releases,
+    repos,
+    server_info,
+)
 
 
 def main() -> None:

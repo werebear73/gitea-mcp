@@ -22,6 +22,7 @@ Self-hosted Gitea is a popular GitHub alternative for solo developers, small tea
 | Pulls | `list_pull_requests`, `get_pull_request`, `add_comment_on_pr`, `create_pr` |
 | Files | `read_file`, `commit_changes`, `create_branch` |
 | Releases | `list_releases`, `create_release` |
+| Meta | `get_server_info`, `get_server_version` |
 
 - Bearer authentication via Personal Access Token (PAT)
 - Async HTTP via `httpx` and `FastMCP`
