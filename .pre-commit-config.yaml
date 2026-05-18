@@ -11,7 +11,9 @@
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.0
+    # Pin matches a recent ruff that CI's `ruff>=0.5` would also resolve to.
+    # When you bump this, also re-run the hook so the cached env updates.
+    rev: v0.15.13
     hooks:
       # Do NOT add `args: [check]` here. The ruff-pre-commit hook's entry is
       # already `ruff check`, so `args: [check]` would expand to
