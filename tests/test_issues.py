@@ -82,7 +82,7 @@ async def test_create_issue_minimal(
         url="https://gitea.example.com/api/v1/repos/acme/widget/issues",
         json=expected_issue,
     )
-    result = await create_issue(owner="acme", repo="widget", title="Hello")
+    result = await create_issue.fn(owner="acme", repo="widget", title="Hello")
     assert result == expected_issue
     request = httpx_mock.get_request()
     assert request is not None
@@ -107,7 +107,7 @@ async def test_create_issue_resolves_label_names(
         url="https://gitea.example.com/api/v1/repos/acme/widget/issues",
         json={"id": 200, "number": 2, "title": "Bug"},
     )
-    await create_issue(
+    await create_issue.fn(
         owner="acme",
         repo="widget",
         title="Bug",
@@ -147,7 +147,7 @@ async def test_list_issues_defaults_to_open_issues_only(
         ),
         json=[{"number": 1}, {"number": 2}],
     )
-    result = await list_issues(owner="acme", repo="widget")
+    result = await list_issues.fn(owner="acme", repo="widget")
     assert [item["number"] for item in result] == [1, 2]
 
 
@@ -163,7 +163,7 @@ async def test_list_issues_passes_filters(
         ),
         json=[],
     )
-    await list_issues(
+    await list_issues.fn(
         owner="acme",
         repo="widget",
         state="closed",
@@ -191,7 +191,7 @@ async def test_get_issue_includes_comments_list(
         url="https://gitea.example.com/api/v1/repos/acme/widget/issues/5/comments",
         json=[{"id": 11, "body": "first"}, {"id": 12, "body": "second"}],
     )
-    result = await get_issue(owner="acme", repo="widget", issue_number=5)
+    result = await get_issue.fn(owner="acme", repo="widget", issue_number=5)
     assert result["number"] == 5
     assert result["comments"] == 2  # Gitea's count preserved
     assert len(result["comments_list"]) == 2
@@ -210,7 +210,7 @@ async def test_update_issue_state_and_title(
         url="https://gitea.example.com/api/v1/repos/acme/widget/issues/5",
         json={"number": 5, "title": "Renamed", "state": "closed"},
     )
-    result = await update_issue(
+    result = await update_issue.fn(
         owner="acme",
         repo="widget",
         issue_number=5,
@@ -235,7 +235,7 @@ async def test_update_issue_clears_milestone_with_zero(
         url="https://gitea.example.com/api/v1/repos/acme/widget/issues/5",
         json={"number": 5, "milestone": None},
     )
-    await update_issue(owner="acme", repo="widget", issue_number=5, milestone=0)
+    await update_issue.fn(owner="acme", repo="widget", issue_number=5, milestone=0)
     patch_request = httpx_mock.get_request(method="PATCH")
     assert patch_request is not None
     import json as _json
@@ -264,7 +264,7 @@ async def test_update_issue_replaces_labels(
         url="https://gitea.example.com/api/v1/repos/acme/widget/issues/5/labels",
         json=[{"id": 7, "name": "bug"}, {"id": 8, "name": "p0"}],
     )
-    result = await update_issue(
+    result = await update_issue.fn(
         owner="acme", repo="widget", issue_number=5, labels=["bug", "p0"]
     )
     put_request = httpx_mock.get_request(method="PUT")
@@ -291,7 +291,7 @@ async def test_update_issue_clears_labels_with_empty_list(
         url="https://gitea.example.com/api/v1/repos/acme/widget/issues/5/labels",
         json=[],
     )
-    await update_issue(
+    await update_issue.fn(
         owner="acme", repo="widget", issue_number=5, labels=[]
     )
     put_request = httpx_mock.get_request(method="PUT")
@@ -314,7 +314,7 @@ async def test_add_comment(
         url="https://gitea.example.com/api/v1/repos/acme/widget/issues/5/comments",
         json=expected_comment,
     )
-    result = await add_comment(
+    result = await add_comment.fn(
         owner="acme",
         repo="widget",
         issue_number=5,

@@ -23,6 +23,7 @@ Hardening release. No new tools or user-facing CLI surface; this is foundational
 
 - `GiteaClient.__init__` accepts two new optional keyword arguments: `max_retries` (default `3`) and `retry_base_delay` (default `0.5`). Existing callers are unaffected — both have defaults that match the previous behavior of "no retries, no backoff" plus the new retry policy.
 - All 10 tool implementations now use the typed verb wrappers (`get_json`, `get_list`, `post_json`, `patch_json`, `put_list`) instead of the typed-intermediate-variable pattern. Behaviorally identical from the MCP client's perspective.
+- **Pinned `fastmcp` to `>=2.0,<3.0`.** FastMCP 3.x introduced stdin/EOF-handling changes that drop messages queued behind `notifications/initialized` when the client closes stdin (e.g. an immediately-following `tools/list` call), which breaks the subprocess regression test that guards the dual-load fix. Migration to FastMCP 3.x is tracked as a separate v0.3.0 task.
 
 ## [0.1.2] - 2026-05-17
 

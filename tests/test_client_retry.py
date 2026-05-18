@@ -12,8 +12,9 @@ from collections.abc import AsyncIterator
 import httpx
 import pytest
 import pytest_asyncio
-from gitea_mcp.client import GiteaAPIError, GiteaClient
 from pytest_httpx import HTTPXMock
+
+from gitea_mcp.client import GiteaAPIError, GiteaClient
 
 
 @pytest_asyncio.fixture

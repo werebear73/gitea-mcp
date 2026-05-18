@@ -20,7 +20,7 @@ async def test_list_repos_no_owner_uses_user_endpoint(
         url="https://gitea.example.com/api/v1/user/repos?page=1&limit=30",
         json=[{"name": "my-first-repo"}, {"name": "my-second-repo"}],
     )
-    result = await list_repos()
+    result = await list_repos.fn()
     assert [r["name"] for r in result] == ["my-first-repo", "my-second-repo"]
 
 
@@ -33,7 +33,7 @@ async def test_list_repos_user_owner(
         url="https://gitea.example.com/api/v1/users/alice/repos?page=1&limit=30",
         json=[{"name": "alice-repo"}],
     )
-    result = await list_repos(owner="alice")
+    result = await list_repos.fn(owner="alice")
     assert result == [{"name": "alice-repo"}]
 
 
@@ -53,7 +53,7 @@ async def test_list_repos_org_owner_falls_back_after_404(
         url="https://gitea.example.com/api/v1/orgs/acme-org/repos?page=1&limit=30",
         json=[{"name": "acme-widget"}, {"name": "acme-gadget"}],
     )
-    result = await list_repos(owner="acme-org")
+    result = await list_repos.fn(owner="acme-org")
     assert [r["name"] for r in result] == ["acme-widget", "acme-gadget"]
 
 
@@ -68,7 +68,7 @@ async def test_list_repos_non_404_error_propagates(
         json={"message": "internal server error"},
     )
     with pytest.raises(GiteaAPIError) as exc_info:
-        await list_repos(owner="alice")
+        await list_repos.fn(owner="alice")
     assert exc_info.value.status_code == 500
 
 
@@ -81,7 +81,7 @@ async def test_list_repos_pagination_params(
         url="https://gitea.example.com/api/v1/user/repos?page=3&limit=10",
         json=[],
     )
-    await list_repos(page=3, limit=10)
+    await list_repos.fn(page=3, limit=10)
 
 
 # ---- list_labels -----------------------------------------------------------
@@ -99,7 +99,7 @@ async def test_list_labels(
             {"id": 2, "name": "enhancement", "color": "84b6eb"},
         ],
     )
-    result = await list_labels(owner="acme", repo="widget")
+    result = await list_labels.fn(owner="acme", repo="widget")
     assert [label["name"] for label in result] == ["bug", "enhancement"]
     assert result[0]["id"] == 1
 
@@ -113,7 +113,7 @@ async def test_list_labels_pagination_params(
         url="https://gitea.example.com/api/v1/repos/acme/widget/labels?page=2&limit=50",
         json=[],
     )
-    await list_labels(owner="acme", repo="widget", page=2, limit=50)
+    await list_labels.fn(owner="acme", repo="widget", page=2, limit=50)
 
 
 # ---- list_milestones -------------------------------------------------------
@@ -131,7 +131,7 @@ async def test_list_milestones_defaults_to_open(
         ),
         json=[{"id": 1, "title": "v1.0", "state": "open"}],
     )
-    result = await list_milestones(owner="acme", repo="widget")
+    result = await list_milestones.fn(owner="acme", repo="widget")
     assert result[0]["title"] == "v1.0"
 
 
@@ -147,5 +147,5 @@ async def test_list_milestones_filters_by_state(
         ),
         json=[{"id": 99, "title": "v0.9", "state": "closed"}],
     )
-    result = await list_milestones(owner="acme", repo="widget", state="closed")
+    result = await list_milestones.fn(owner="acme", repo="widget", state="closed")
     assert result[0]["state"] == "closed"
