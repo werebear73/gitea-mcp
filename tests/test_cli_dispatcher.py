@@ -35,6 +35,7 @@ def test_help_prints_help(
     assert "Usage:" in out
     assert "gitea-mcp init" in out
     assert "gitea-mcp doctor" in out
+    assert "gitea-mcp serve" in out
 
 
 def test_short_help_prints_help(
@@ -95,6 +96,26 @@ def test_doctor_dispatches_with_remainder(monkeypatch: pytest.MonkeyPatch) -> No
         server.main()
     assert exc_info.value.code == 0
     assert received["argv"] == ["--url", "https://x"]
+
+
+def test_serve_dispatches_with_remainder(monkeypatch: pytest.MonkeyPatch) -> None:
+    received: dict[str, list[str] | None] = {}
+
+    def fake_serve_main(argv: list[str] | None = None) -> int:
+        received["argv"] = argv
+        return 0
+
+    import gitea_mcp.serve as serve_module
+
+    monkeypatch.setattr(serve_module, "main", fake_serve_main)
+    monkeypatch.setattr(
+        "sys.argv",
+        ["gitea-mcp", "serve", "--transport", "http", "--port", "8000"],
+    )
+    with pytest.raises(SystemExit) as exc_info:
+        server.main()
+    assert exc_info.value.code == 0
+    assert received["argv"] == ["--transport", "http", "--port", "8000"]
 
 
 def test_unknown_subcommand_exits_2(

@@ -103,6 +103,29 @@ Configuration is read from environment variables.
 | `GITEA_MAX_RETRIES` | No | `3` | Max retries for transient failures on idempotent methods (`GET`/`PUT`/`DELETE`). Set to `0` to disable retries. `POST` and `PATCH` are never auto-retried — they could create duplicate issues, comments, or releases. `429 Too Many Requests` is retried for **any** method, honoring `Retry-After` when present. |
 | `GITEA_RETRY_BASE_DELAY` | No | `0.5` | Base delay (seconds) for exponential backoff between retries. Effective delay grows as `base * 2^attempt` with jitter, capped at 4 seconds. |
 
+## Self-hosting / HTTP transport
+
+By default `gitea-mcp` runs in stdio mode — each MCP client (Claude Desktop, Cowork, etc.) launches its own subprocess on demand. For self-hosting one instance that multiple clients connect to over the network, use the streamable-HTTP transport:
+
+```bash
+gitea-mcp serve --transport http --host 0.0.0.0 --port 8000 --path /mcp
+```
+
+All four flags can also be provided via environment variables (handy for Docker / systemd units):
+
+| Variable                  | Default      | Flag           |
+| ------------------------- | ------------ | -------------- |
+| `GITEA_MCP_TRANSPORT`     | `stdio`      | `--transport`  |
+| `GITEA_MCP_HOST`          | `127.0.0.1`  | `--host`       |
+| `GITEA_MCP_PORT`          | `8000`       | `--port`       |
+| `GITEA_MCP_PATH`          | `/mcp`       | `--path`       |
+
+MCP clients connect to the resulting URL (e.g. `https://gitea-mcp.example.com/mcp`) just like they would to a local stdio server, except they share the one running instance.
+
+**Auth model (this release).** The server reads `GITEA_TOKEN` from its own environment, so any client that reaches the URL acts as that one Gitea user. Run it for yourself behind your own access controls (firewall, reverse-proxy auth, VPN, Tailscale). Multi-tenant bring-your-own-token is on the roadmap.
+
+The no-args invocation (`gitea-mcp` with no subcommand) still runs in stdio mode, so existing Claude Desktop / Cowork / Claude Code integrations are unaffected by this addition.
+
 ## Compatibility
 
 | Server | Status |
@@ -123,6 +146,10 @@ pytest
 ```
 
 The two-stage pre-commit policy keeps the commit loop snappy (lint + type only) while making `git push` block on the slow stuff that's actually caught CI/release bugs in the past — the full test suite and `python -m build && twine check dist/*`, which surfaces `setuptools_scm` version surprises before they reach a tag push.
+
+## Roadmap
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for what's shipped, what's next, and what's out of scope.
 
 ## Versioning
 
