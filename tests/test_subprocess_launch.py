@@ -36,7 +36,10 @@ EXPECTED_TOOLS = sorted(
     [
         "add_comment",
         "add_comment_on_pr",
+        "commit_changes",
+        "create_branch",
         "create_issue",
+        "create_pr",
         "create_release",
         "get_issue",
         "get_pull_request",
@@ -47,6 +50,7 @@ EXPECTED_TOOLS = sorted(
         "list_pull_requests",
         "list_releases",
         "list_repos",
+        "read_file",
         "update_issue",
     ]
 )

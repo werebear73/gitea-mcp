@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-18
+
+Phase 3 — file operations and PR creation. This is the surface that lets the LLM actually *change code* via gitea-mcp instead of just reading and discussing it. Tool surface 14 → 18.
+
+### Added
+
+- **`read_file(owner, repo, path, ref=None)`** — read a file's content (optionally pinned to a branch/tag/commit). Returns Gitea's `ContentsResponse` shape extended with a `text` field containing the UTF-8-decoded file content (or `None` for binary files; the raw base64 `content` is preserved either way).
+- **`create_branch(owner, repo, new_branch_name, old_branch_name=None)`** — create a new branch off an existing one (defaults to the repository's default branch when `old_branch_name` is omitted).
+- **`commit_changes(owner, repo, branch, path, content, message)`** — create or update a single file on a branch in one commit. Auto-detects whether the file exists (GET the file's SHA; 404 → POST to create, else PUT to update with the SHA). Single-file only; multi-file commits via the Git Trees API are deliberately out of scope. `destructiveHint=True` because update overwrites existing content (reversible via git, but a user-visible state change).
+- **`create_pr(owner, repo, head, base, title, body="", draft=False)`** — open a pull request from `head` into `base`. Same-repo only; cross-fork PRs not supported by this tool.
+- New module `src/gitea_mcp/tools/files.py` registered via `gitea_mcp.server` alongside the existing `issues`, `repos`, `pulls`, and `releases` modules.
+- `tests/test_files.py` with 10 unit tests covering all 4 tools, including the create-vs-update branching in `commit_changes` (404 → POST path; existing → PUT-with-SHA path; non-404 lookup errors propagate).
+- `tests/test_subprocess_launch.py`'s `EXPECTED_TOOLS` bumped to 18 (was 14).
+
 ## [0.3.0] - 2026-05-18
 
 First tool-surface expansion since the v0.1.x MVP. Adds branch listing and pull-request read/comment tools so future projects have first-class access to Gitea's PR workflow, not just issues.
