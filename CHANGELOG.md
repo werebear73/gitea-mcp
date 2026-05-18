@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-05-18
+
+Closes out the two items deferred from v0.2.1.
+
+### Added
+
+- **MCP `ToolAnnotations` on all 10 tools** (restored — see v0.2.1 `### Deferred`). Read tools (`list_issues`, `get_issue`, `list_repos`, `list_labels`, `list_milestones`, `list_releases`) have `readOnlyHint=True` so MCP clients can auto-approve them. Write tools (`create_issue`, `add_comment`, `create_release`) have `readOnlyHint=False` with `destructiveHint=False`. `update_issue` has `destructiveHint=True` because closing an issue and clearing labels are reversible-but-user-visible side effects worth gating on confirmation. All tools have `openWorldHint=True` (they hit a remote Gitea instance). The v0.2.1 investigation cleared annotations of any blame for the subprocess test failure — that was always a test-side stdin race.
+
+### Fixed
+
+- **`tests/test_subprocess_launch.py` rewritten** to use a reader thread + queue instead of `subprocess.Popen.communicate()`. The old pattern wrote all JSON-RPC messages then immediately closed stdin; FastMCP 2.x's stdio reader sometimes saw EOF and shut down before processing the queued `tools/list` call. The new pattern keeps stdin open until the `tools/list` response (id=2) arrives in the queue, then closes stdin and waits for the server to exit cleanly. Removes the `xfail` marker — the test now passes deterministically on both Windows and Linux CI, restoring the dual-load regression guard.
+
 ## [0.2.1] - 2026-05-17
 
 > Note on version numbering: This is the **first published** 0.2.x release.
