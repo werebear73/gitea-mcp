@@ -13,6 +13,7 @@ from gitea_mcp.tools.pulls import (
     get_pull_request,
     list_branches,
     list_pull_requests,
+    merge_pr,
 )
 
 # ---- list_branches ---------------------------------------------------------
@@ -160,3 +161,53 @@ async def test_add_comment_on_pr_posts_to_issues_endpoint(
     request = httpx_mock.get_request()
     assert request is not None
     assert _json.loads(request.content) == {"body": "great change"}
+
+
+# ---- merge_pr --------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_merge_pr_defaults_to_merge_strategy(
+    patched_server_client: GiteaClient, httpx_mock: HTTPXMock
+) -> None:
+    expected = {"sha": "abc123", "merged": True, "message": "Pull Request has been merged"}
+    httpx_mock.add_response(
+        method="POST",
+        url="https://gitea.example.com/api/v1/repos/acme/widget/pulls/7/merge",
+        json=expected,
+    )
+
+    result = await merge_pr.fn(owner="acme", repo="widget", pull_number=7)
+
+    assert result == expected
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert _json.loads(request.content) == {"Do": "merge"}
+
+
+@pytest.mark.asyncio
+async def test_merge_pr_with_optional_message_fields(
+    patched_server_client: GiteaClient, httpx_mock: HTTPXMock
+) -> None:
+    httpx_mock.add_response(
+        method="POST",
+        url="https://gitea.example.com/api/v1/repos/acme/widget/pulls/8/merge",
+        json={"sha": "def456", "merged": True, "message": "ok"},
+    )
+
+    await merge_pr.fn(
+        owner="acme",
+        repo="widget",
+        pull_number=8,
+        do="squash",
+        merge_title_field="PR_TITLE",
+        merge_message_field="PR_BODY",
+    )
+
+    request = httpx_mock.get_request()
+    assert request is not None
+    assert _json.loads(request.content) == {
+        "Do": "squash",
+        "MergeTitleField": "PR_TITLE",
+        "MergeMessageField": "PR_BODY",
+    }

@@ -14,6 +14,8 @@ This roadmap is non-binding — priorities can shift as user needs emerge. PRs w
 
 - **Streamable-HTTP transport via `gitea-mcp serve`** — self-host one instance for multiple MCP clients to share. CLI flags + env vars (`GITEA_MCP_TRANSPORT`, `GITEA_MCP_HOST`, `GITEA_MCP_PORT`, `GITEA_MCP_PATH`). Single-user auth model.
 - **Server introspection** — `get_server_info` and `get_server_version` MCP tools so clients can ask the server about itself (which gitea-mcp version, which Gitea instance, which authenticated user).
+- **PR merge endpoint** — `merge_pr` closes the write-side PR workflow by calling `POST /repos/{owner}/{repo}/pulls/{pull_number}/merge` with strategy options (`merge`, `rebase`, `rebase-merge`, `squash`) and optional merge-message field controls. Marked `destructiveHint=True` so MCP clients can gate the action on confirmation.
+- **Listing wire-up (Smithery + MCP Registry)** — repository now includes publication assets: MCP Registry `server.json`, PyPI ownership marker (`mcp-name`) in README, and a publishing runbook in `docs/PUBLISHING.md`.
 
 ### v0.4.x
 
@@ -41,9 +43,7 @@ This roadmap is non-binding — priorities can shift as user needs emerge. PRs w
 
 Near-term work, committed in principle:
 
-- **`merge_pr` tool** — close the write-side PR workflow. Today you can `create_pr` and `add_comment_on_pr` but not actually merge. Add a tool that calls `POST /repos/{owner}/{repo}/pulls/{pull_number}/merge` with merge-style options (`merge`, `rebase`, `rebase-merge`, `squash`), optional merge commit message and title. Likely tagged `destructiveHint=True` so MCP clients gate it on user confirmation.
-- **Smithery URL publishing** — list gitea-mcp on [smithery.ai](https://smithery.ai) using the streamable-HTTP transport added in v0.5.0. Provides distribution, analytics, and auto-generated OAuth UI for new users.
-- **Official MCP Registry listing** — list gitea-mcp on [registry.modelcontextprotocol.io](https://registry.modelcontextprotocol.io) (the Linux Foundation MCP project's canonical catalog).
+- **Execute live publication** — run the account-scoped publish actions (Smithery namespace publish and `mcp-publisher publish`) now that repo metadata and docs are wired.
 
 ---
 

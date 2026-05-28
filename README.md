@@ -1,5 +1,7 @@
 # gitea-mcp
 
+<!-- mcp-name: io.github.werebear73/gitea-mcp -->
+
 A [Model Context Protocol](https://modelcontextprotocol.io) server for [Gitea](https://gitea.io) — lets AI assistants (Claude, ChatGPT, Copilot, and anything else that speaks MCP) read, create, and manage issues, repositories, and releases on any Gitea instance you can reach.
 
 Also works against **[Forgejo](https://forgejo.org)** and **[Codeberg](https://codeberg.org)** (API-compatible).
@@ -19,7 +21,7 @@ Self-hosted Gitea is a popular GitHub alternative for solo developers, small tea
 | --- | --- |
 | Issues | `create_issue`, `list_issues`, `get_issue`, `update_issue`, `add_comment` |
 | Repos | `list_repos`, `list_labels`, `list_milestones`, `list_branches` |
-| Pulls | `list_pull_requests`, `get_pull_request`, `add_comment_on_pr`, `create_pr` |
+| Pulls | `list_pull_requests`, `get_pull_request`, `add_comment_on_pr`, `create_pr`, `merge_pr` |
 | Files | `read_file`, `commit_changes`, `create_branch` |
 | Releases | `list_releases`, `create_release` |
 | Meta | `get_server_info`, `get_server_version` |
@@ -150,6 +152,11 @@ The two-stage pre-commit policy keeps the commit loop snappy (lint + type only) 
 ## Roadmap
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for what's shipped, what's next, and what's out of scope.
+
+## Publishing
+
+- MCP Registry metadata is tracked in [`server.json`](server.json).
+- Smithery + MCP Registry publication steps are documented in [`docs/PUBLISHING.md`](docs/PUBLISHING.md).
 
 ## Versioning
 

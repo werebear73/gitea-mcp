@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`merge_pr(owner, repo, pull_number, do="merge", merge_title_field=None, merge_message_field=None)`** — merge an open pull request via `POST /repos/{owner}/{repo}/pulls/{pull_number}/merge`. Supports Gitea merge strategies (`merge`, `rebase`, `rebase-merge`, `squash`) plus optional merge-title/merge-message field selectors. Marked `destructiveHint=True` because it mutates repository history and closes the PR.
+- 2 new unit tests in `tests/test_pulls.py` for default merge behavior and optional merge-message fields.
+- `tests/test_subprocess_launch.py` `EXPECTED_TOOLS` updated to include `merge_pr` so subprocess-launch registration coverage tracks the expanded MCP surface.
+- **MCP Registry publishing assets** — added root `server.json` for `mcp-publisher` and an MCP ownership marker (`mcp-name`) in `README.md` for PyPI ownership verification.
+- **Publishing runbook** — added `docs/PUBLISHING.md` with Smithery URL publishing and MCP Registry publish steps.
+
 ## [0.5.0] - 2026-05-18
 
 Adds streamable-HTTP transport so a single hosted gitea-mcp instance can serve multiple MCP clients over the network — the architectural foundation for upcoming Smithery URL publishing and any team / multi-machine setup. Backwards-compatible: the no-args invocation (`gitea-mcp`) still runs in stdio mode, so existing Claude Desktop / Cowork / Claude Code configs are unaffected.

@@ -52,6 +52,7 @@ EXPECTED_TOOLS = sorted(
         "list_pull_requests",
         "list_releases",
         "list_repos",
+        "merge_pr",
         "read_file",
         "update_issue",
     ]

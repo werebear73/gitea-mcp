@@ -129,3 +129,60 @@ async def add_comment_on_pr(
         f"/repos/{owner}/{repo}/issues/{pull_number}/comments",
         json={"body": body},
     )
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=True,
+        openWorldHint=True,
+    )
+)
+async def merge_pr(
+    owner: Annotated[str, Field(description="Repository owner")],
+    repo: Annotated[str, Field(description="Repository name")],
+    pull_number: Annotated[int, Field(description="Pull request number")],
+    do: Annotated[
+        str,
+        Field(
+            description=(
+                "Merge strategy: 'merge', 'rebase', 'rebase-merge', or 'squash'."
+            )
+        ),
+    ] = "merge",
+    merge_title_field: Annotated[
+        str | None,
+        Field(
+            description=(
+                "Optional merge commit title. Ignored by strategies that do not create "
+                "a merge commit."
+            )
+        ),
+    ] = None,
+    merge_message_field: Annotated[
+        str | None,
+        Field(
+            description=(
+                "Optional merge commit message body. Ignored by strategies that do not "
+                "create a merge commit."
+            )
+        ),
+    ] = None,
+) -> dict[str, Any]:
+    """Merge a pull request.
+
+    Calls ``POST /repos/{owner}/{repo}/pulls/{pull_number}/merge`` using the
+    requested merge strategy and optional commit-message overrides. This is
+    tagged ``destructiveHint=True`` because it changes repository history and
+    closes the pull request.
+    """
+    payload: dict[str, Any] = {"Do": do}
+    if merge_title_field is not None:
+        payload["MergeTitleField"] = merge_title_field
+    if merge_message_field is not None:
+        payload["MergeMessageField"] = merge_message_field
+
+    return await get_client().post_json(
+        f"/repos/{owner}/{repo}/pulls/{pull_number}/merge",
+        json=payload,
+    )
