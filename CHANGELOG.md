@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **MCPB (MCP Bundle) for one-click Claude Desktop install** — new `mcpb/` directory with `manifest.json` (schema 0.4, `server.type: "uv"`), thin `server/main.py` wrapper, and `pyproject.toml` declaring `gitea-mcp>=<version>` as a PyPI dep. Bundle ships as `gitea-mcp.mcpb` and is built by the new `release-mcpb` job in `.github/workflows/release.yml` (runs after `publish`, attaches the artifact to the GitHub Release). User-config prompts only `GITEA_URL` + `GITEA_TOKEN` (sensitive); the three tuning env vars (`GITEA_TIMEOUT`, `GITEA_MAX_RETRIES`, `GITEA_RETRY_BASE_DELAY`) stay hidden with their existing defaults.
+- `mcpb/README.md` documenting the local build (`npm install -g @anthropic-ai/mcpb && cd mcpb && mcpb pack`).
+
 ## [0.5.1] - 2026-05-29
 
 Patch release: closes the write-side PR workflow with `merge_pr` and wires the repository for MCP Registry publishing. Tool surface 20 → 21.

@@ -1,0 +1,53 @@
+{
+  "manifest_version": "0.4",
+  "name": "gitea-mcp",
+  "display_name": "gitea-mcp",
+  "version": "0.5.1",
+  "description": "MCP server for Gitea (and Forgejo, Codeberg) — issues, repos, branches, PRs, file operations, releases.",
+  "long_description": "A Model Context Protocol server that lets Claude read and manage issues, repositories, branches, pull requests, releases, and files on any Gitea instance you can reach. Also works against Forgejo and Codeberg (API-compatible). 21 tools across 6 resource families. Self-hosted-Gitea operators and small teams running GitHub-alternative platforms can wire Claude Desktop directly into their workflow.",
+  "author": {
+    "name": "Sam Ware",
+    "email": "samuel@waretech.services",
+    "url": "https://github.com/werebear73"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/werebear73/gitea-mcp.git"
+  },
+  "homepage": "https://github.com/werebear73/gitea-mcp",
+  "license": "MIT",
+  "server": {
+    "type": "uv",
+    "entry_point": "server/main.py",
+    "mcp_config": {
+      "command": "uv",
+      "args": ["run", "--directory", "${__dirname}", "server/main.py"],
+      "env": {
+        "GITEA_URL": "${user_config.gitea_url}",
+        "GITEA_TOKEN": "${user_config.gitea_token}"
+      }
+    }
+  },
+  "user_config": {
+    "gitea_url": {
+      "type": "string",
+      "title": "Gitea URL",
+      "description": "Base URL of your Gitea/Forgejo/Codeberg instance (e.g. https://gitea.example.com).",
+      "required": true
+    },
+    "gitea_token": {
+      "type": "string",
+      "title": "Personal Access Token",
+      "description": "Gitea Personal Access Token with the scopes you want Claude to use (e.g. repo, issue, package). Stored encrypted by Claude Desktop.",
+      "required": true,
+      "sensitive": true
+    }
+  },
+  "compatibility": {
+    "claude_desktop": ">=1.0.0",
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "python": ">=3.11"
+    }
+  }
+}

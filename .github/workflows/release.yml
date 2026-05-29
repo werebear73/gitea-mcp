@@ -32,3 +32,50 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  release-mcpb:
+    # Build the .mcpb (MCP Bundle) for Claude Desktop drag-and-drop install
+    # and attach it to the GitHub Release. Runs after `publish` so the bundle's
+    # UV runtime can resolve `gitea-mcp>=<version>` from PyPI at install time.
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # attach asset to the GitHub Release for this tag
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "20"
+
+      - name: Install mcpb CLI
+        run: npm install -g @anthropic-ai/mcpb
+
+      - name: Sync version into manifest + pyproject
+        working-directory: mcpb
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.tmp.json
+          mv manifest.tmp.json manifest.json
+          sed -i "s/^version = .*/version = \"${VERSION}\"/" pyproject.toml
+          sed -i "s/gitea-mcp>=[^\"]*/gitea-mcp>=${VERSION}/" pyproject.toml
+
+      - name: Pack MCPB
+        working-directory: mcpb
+        run: mcpb pack
+
+      - name: Rename pack output to <name>-<version>.mcpb
+        # The mcpb CLI writes <dirname>.mcpb (i.e. `mcpb.mcpb`) regardless of
+        # what its "Archive Details" output line claims. Rename to the
+        # user-facing form so the GitHub Release asset is self-describing.
+        working-directory: mcpb
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          mv mcpb.mcpb "gitea-mcp-${VERSION}.mcpb"
+
+      - name: Attach MCPB to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: mcpb/gitea-mcp-*.mcpb

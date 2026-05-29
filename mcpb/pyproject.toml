@@ -1,0 +1,8 @@
+[project]
+name = "gitea-mcp-mcpb"
+version = "0.5.1"
+description = "MCPB bundle wrapper for gitea-mcp (resolved from PyPI via the UV runtime)."
+requires-python = ">=3.11"
+dependencies = [
+  "gitea-mcp>=0.5.1",
+]
