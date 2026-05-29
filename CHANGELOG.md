@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-05-29
+
+Patch release: closes the write-side PR workflow with `merge_pr` and wires the repository for MCP Registry publishing. Tool surface 20 → 21.
+
 ### Added
 
 - **`merge_pr(owner, repo, pull_number, do="merge", merge_title_field=None, merge_message_field=None)`** — merge an open pull request via `POST /repos/{owner}/{repo}/pulls/{pull_number}/merge`. Supports Gitea merge strategies (`merge`, `rebase`, `rebase-merge`, `squash`) plus optional merge-title/merge-message field selectors. Marked `destructiveHint=True` because it mutates repository history and closes the PR.
@@ -14,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `tests/test_subprocess_launch.py` `EXPECTED_TOOLS` updated to include `merge_pr` so subprocess-launch registration coverage tracks the expanded MCP surface.
 - **MCP Registry publishing assets** — added root `server.json` for `mcp-publisher` and an MCP ownership marker (`mcp-name`) in `README.md` for PyPI ownership verification.
 - **Publishing runbook** — added `docs/PUBLISHING.md` with Smithery URL publishing and MCP Registry publish steps.
+
+### Changed
+
+- `server.json` `remotes` block removed pending a public hosted instance — listing covers the PyPI package only until a Smithery-served endpoint exists.
 
 ## [0.5.0] - 2026-05-18
 
